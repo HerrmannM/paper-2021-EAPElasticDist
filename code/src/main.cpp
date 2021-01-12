@@ -422,11 +422,11 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
                 break;
             }
             case PRU:{
-                dfun = [c](TRAIN_TEST, [[maybe_unused]]double ub){ return msm<false>(TRAIN, TEST, c, ub); };
+                dfun = [c](TRAIN_TEST, [[maybe_unused]]double ub){ return msm<false>(TRAIN, TEST, c); };
                 break;
             }
             case PRU_LA:{
-                dfun = [c](TRAIN_TEST, [[maybe_unused]]double ub){ return msm<true>(TRAIN, TEST, c, ub); };
+                dfun = [c](TRAIN_TEST, [[maybe_unused]]double ub){ return msm<true>(TRAIN, TEST, c); };
                 break;
             }
             case EAP:{
