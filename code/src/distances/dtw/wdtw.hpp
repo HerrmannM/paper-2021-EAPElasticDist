@@ -306,3 +306,76 @@ template<bool doLA=false>
     // --- Finalisation
     return buffers[c + nbcols - 1];
 }
+
+[[nodiscard]] double wdtw_base_ea(
+        const double *series1, size_t length1,
+        const double *series2, size_t length2,
+        const double *weights,
+        double cutoff
+) {
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+    // Pre-conditions. Accept nullptr if length is 0
+    assert((series1 != nullptr || length1 == 0) && length1 < MAX_SERIES_LENGTH);
+    assert((series2 != nullptr || length2 == 0) && length2 < MAX_SERIES_LENGTH);
+    // Check sizes. If both series are empty, return 0, else if one is empty and not the other, maximal error.
+    if (length1 == 0 && length2 == 0) { return 0; }
+    else if ((length1 == 0) != (length2 == 0)) { return POSITIVE_INFINITY; }
+    // Use the smallest size as the columns (which will be the allocation size)
+    const double *cols = (length1 < length2) ? series1 : series2;
+    const double *lines = (length1 < length2) ? series2 : series1;
+    const size_t nbcols = std::min(length1, length2);
+    const size_t nblines = std::max(length1, length2);
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+    // Double buffer allocation, no initialisation required (border condition manage in the code).
+    // Base indices for the 'c'urrent row and the 'p'revious row.
+    auto buffers = std::unique_ptr<double[]>(new double[nbcols * 2]);
+    std::vector<double> buffers_v(nbcols * 2, 0);
+    size_t c{0}, p{nbcols};
+
+    // Line counter
+    size_t i{0};
+    // Variable storing the cost (also act as the cost of the left neighbour)
+    double cost;
+    double minv = POSITIVE_INFINITY;
+
+    // --- Initialization of the first line, take the border condition into account
+    {
+        const double li = lines[i];
+        // First cell is a special case
+        {
+            cost = square_dist(li, cols[0]) * weights[0];
+            buffers[c + 0] = cost;
+        }
+        // Rest of the line, a cell only depends on the previous cell
+        for (size_t j{1}; j < nbcols; ++j) {
+            cost = cost + square_dist(li, cols[j]) * weights[j];
+            buffers[c + j] = cost;
+        }
+        // Finalisation
+        ++i;
+    }
+
+    // --- Main loop
+    for (; i < nblines; ++i) {
+        // --- --- --- Swap and variables init
+        std::swap(c, p);
+        const double li = lines[i];
+        // --- --- --- Handle border condition: compute the first column which can only depends on the "top" item
+        {
+            cost = buffers[p + 0] + square_dist(li, cols[0]) * weights[i];
+            buffers[c + 0] = cost;
+            minv = cost;
+        }
+        // --- --- --- Iterate through the columns
+        for (size_t j{1}; j < nbcols; ++j) {
+            cost = min(cost, buffers[p + j - 1], buffers[p + j]) + square_dist(li, cols[j]) * weights[absdiff(i, j)];
+            buffers[c + j] = cost;
+            minv = std::min(minv, cost);
+        }
+        if (minv > cutoff) { return POSITIVE_INFINITY; }
+    }
+
+    // --- Finalisation
+    return buffers[c + nbcols - 1];
+}
