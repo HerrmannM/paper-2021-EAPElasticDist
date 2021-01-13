@@ -55,6 +55,7 @@ void print_usage(const string &execname, ostream &out) {
     out << "Note: windows are computed using the window ratio and the longest series in the dataset." << endl;
     out << "Run mode:" << endl;
     out << "  base                  Base implementation, on a double buffer where applicable (default)" << endl;
+    out << "  base_ea               Base implementation with early abandon. Not for LCSS, SQED" << endl;
     out << "  pru                   Pruning only, using EAP and cutoff based on the diagonal (no early abandoning!). Not for LCSS, SQED. " << endl;
     out << "  pru_la                PRU with last alignment cutoff adjustment. Not for LCSS, SQED" << endl;
     out << "  eap                   Early abandoned and pruned. SQED and LCSS are only early abandoned, not pruned" << endl;
@@ -79,6 +80,7 @@ inline bool is_read_open(const fs::path& p) {
 
 enum RUNMODE{
     BASE,
+    BASE_EA,
     PRU,
     PRU_LA,
     EAP,
@@ -88,6 +90,7 @@ enum RUNMODE{
 string to_string(RUNMODE rm){
     switch(rm){
         case BASE: return "base";
+        case BASE_EA: return "base_ea";
         case PRU: return "pru";
         case PRU_LA: return "pru_la";
         case EAP: return "eap";
@@ -289,6 +292,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
                 dfun = [](TRAIN_TEST, [[maybe_unused]]double ub){ return dtw_base(TRAIN, TEST); };
                 break;
             }
+            case BASE_EA:{
+                dfun = [](TRAIN_TEST, double ub){ return dtw_base_ea(TRAIN, TEST, ub); };
+                break;
+            }
             case PRU:{
                 dfun = [](TRAIN_TEST, [[maybe_unused]]double ub){ return dtw<false>(TRAIN, TEST); };
                 break;
@@ -317,6 +324,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
                 dfun = [w](TRAIN_TEST, [[maybe_unused]]double ub){ return cdtw_base(TRAIN, TEST, w); };
                 break;
             }
+            case BASE_EA:{
+                dfun = [w](TRAIN_TEST, double ub){ return cdtw_base_ea(TRAIN, TEST, w, ub); };
+                break;
+            }
             case PRU:{
                 dfun = [w](TRAIN_TEST, [[maybe_unused]]double ub){ return cdtw<false>(TRAIN, TEST, w); };
                 break;
@@ -342,6 +353,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
         switch(conf.runmode){
             case BASE:{
                 dfun = [weights](TRAIN_TEST, [[maybe_unused]]double ub){ return wdtw_base(TRAIN, TEST, weights.data()); };
+                break;
+            }
+            case BASE_EA:{
+                dfun = [weights](TRAIN_TEST, double ub){ return wdtw_base_ea(TRAIN, TEST, weights.data(), ub); };
                 break;
             }
             case PRU:{
@@ -377,6 +392,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
         switch(conf.runmode){
             case BASE:{
                 dfun = [gv, w](TRAIN_TEST, [[maybe_unused]]double ub){ return erp_base(TRAIN, TEST, gv, w); };
+                break;
+            }
+            case BASE_EA:{
+                dfun = [gv, w](TRAIN_TEST, double ub){ return erp_base_ea(TRAIN, TEST, gv, w, ub); };
                 break;
             }
             case PRU:{
@@ -421,6 +440,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
                 dfun = [c](TRAIN_TEST, [[maybe_unused]]double ub){ return msm_base(TRAIN, TEST, c); };
                 break;
             }
+            case BASE_EA:{
+                dfun = [c](TRAIN_TEST, double ub){ return msm_base_ea(TRAIN, TEST, c, ub); };
+                break;
+            }
             case PRU:{
                 dfun = [c](TRAIN_TEST, [[maybe_unused]]double ub){ return msm<false>(TRAIN, TEST, c); };
                 break;
@@ -446,6 +469,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
         switch(conf.runmode){
             case BASE:{
                 dfun = [n, l](TRAIN_TEST, [[maybe_unused]]double ub){ return twe_base(TRAIN, TEST, n, l); };
+                break;
+            }
+            case BASE_EA:{
+                dfun = [n, l](TRAIN_TEST, double ub){ return twe_base_ea(TRAIN, TEST, n, l, ub); };
                 break;
             }
             case PRU:{
@@ -710,12 +737,13 @@ int main(int argc, char** argv){
                                 conf.twe_lambda = lambda.value();
                             }
                         } else { error={"twe expects a stiffness parameter 0<=nu followed by a cost parameter 0<=lambda"}; }
-                    } else { error={"twe expects a stiffness parameter 0<=nu followed by a cost parameter 0<=lambda"}; }
+                    } else { error={"Unknown distance " + distname}; }
                 } else {error = {"Distance name expected after '-dist'"}; }
             }
 
                 // --- --- --- Checking how to run it
             else if(arg=="base"){ conf.runmode = BASE; }
+            else if(arg=="base_ea"){ conf.runmode = BASE_EA; }
             else if(arg=="pru"){ conf.runmode = PRU; }
             else if(arg=="pru_la"){ conf.runmode = PRU_LA; }
             else if(arg=="eap"){ conf.runmode = EAP; }
