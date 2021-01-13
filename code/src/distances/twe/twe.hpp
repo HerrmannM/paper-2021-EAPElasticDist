@@ -337,3 +337,80 @@ template<bool doLA=false>
     // --- Finalisation
     return buffers[c + nbcols - 1];
 }
+
+[[nodiscard]] double twe_base_ea(
+        const double *series1, size_t length1,
+        const double *series2, size_t length2,
+        double nu, double lambda,
+        double cutoff
+) {
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+    // Pre-conditions. Accept nullptr if length is 0
+    assert((series1 != nullptr || length1 == 0) && length1 < MAX_SERIES_LENGTH);
+    assert((series2 != nullptr || length2 == 0) && length2 < MAX_SERIES_LENGTH);
+    // Check sizes. If both series are empty, return 0, else if one is empty and not the other, maximal error.
+    if (length1 == 0 && length2 == 0) { return 0; }
+    else if ((length1 == 0) != (length2 == 0)) { return POSITIVE_INFINITY; }
+    // Use the smallest size as the columns (which will be the allocation size)
+    const double *cols = (length1 < length2) ? series1 : series2;
+    const double *lines = (length1 < length2) ? series2 : series1;
+    const size_t nbcols = std::min(length1, length2);
+    const size_t nblines = std::max(length1, length2);
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+    // Double buffer allocation, no initialisation required (border condition manage in the code).
+    // Base indices for the 'c'urrent row and the 'p'revious row.
+    auto buffers = std::unique_ptr<double[]>(new double[nbcols*2]);
+    size_t c{0}, p{nbcols};
+
+    // During initialisation, precompute distance between consecutive items in cols: reuse in the "Delete_B" case in the main loop.
+    auto distcol = std::unique_ptr<double[]>(new double[nbcols]);
+
+    // Variables
+    double cost;
+
+    double minv;
+
+    // --- Constants: we only consider timestamp spaced by 1, so:
+    // --- --- --- In the "delete" case, we always have a time difference of 1, so we always have 1*nu+lambda
+    const double nu_lambda = nu+lambda;
+    // --- --- --- In the "match" case, we always have nu*(|i-j|+|(i-1)-(j-1)|) == 2*nu*|i-j|
+    const double nu2 = 2*nu;
+
+    // --- Initialisation: compute the first line, dealing with the line border condition (column border is handled in the main loop)
+    // Case [0,0]: special "Match case"
+    buffers[c + 0] = square_dist(lines[0], cols[0]);
+    // Initialisation of the first line: [i==0, j>=1]: "Delete_B case" (go over the columns), storing intermediate results for later.
+    for (size_t j{1}; j < nbcols; ++j) {
+        const double d = square_dist(cols[j - 1], cols[j]);
+        distcol[j] = d;
+        buffers[c + j] = buffers[c + j - 1] + d + nu_lambda;
+    }
+
+    // --- Main loop
+    for (size_t i{1}; i < nblines; ++i) {
+        // --- --- --- Swap and variables init
+        std::swap(c, p);
+        const double li = lines[i];
+        const double li1 = lines[i - 1];
+        const double distli = square_dist(li1, li);
+        // --- --- --- Handle border condition: case j==0: Delete_A / Top
+        cost =  buffers[p + 0] + distli + nu_lambda;
+        buffers[c + 0] = cost;
+        minv = cost;
+        // --- --- --- Loop over the remaining columns
+        for (size_t j{1}; j < nbcols; ++j) {
+            cost = min(
+                    cost + distcol[j] + nu_lambda,      // "Delete_B": over the columns / Prev
+                    buffers[p + j - 1] + square_dist(li, cols[j]) + square_dist(li1, cols[j - 1]) + nu2 * absdiff(i, j), // Match: Diag
+                    buffers[p + j] + distli + nu_lambda // "Delete_A": over the lines / Top
+            );
+            buffers[c + j] = cost;
+            minv = std::min(minv, cost);
+        }
+        if(minv>cutoff){return POSITIVE_INFINITY;}
+    }
+
+    // --- Finalisation
+    return buffers[c + nbcols - 1];
+}
