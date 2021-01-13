@@ -354,3 +354,73 @@ template<bool doLA=false>
     return buffers[c + nbcols - 1];
 }
 
+[[nodiscard]] double erp_base_ea(
+        const double *series1, size_t length1,
+        const double *series2, size_t length2,
+        double gValue,
+        size_t w,
+        double cutoff
+) {
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+    // Pre-conditions. Accept nullptr if length is 0
+    assert((series1 != nullptr || length1 == 0) && length1 < MAX_SERIES_LENGTH);
+    assert((series2 != nullptr || length2 == 0) && length2 < MAX_SERIES_LENGTH);
+    // Check sizes. If both series are empty, return 0, else if one is empty and not the other, maximal error.
+    if (length1 == 0 && length2 == 0) { return 0; }
+    else if ((length1 == 0) != (length2 == 0)) { return POSITIVE_INFINITY; }
+    // Use the smallest size as the columns (which will be the allocation size)
+    const double *cols = (length1 < length2) ? series1 : series2;
+    const double *lines = (length1 < length2) ? series2 : series1;
+    const size_t nbcols = std::min(length1, length2);
+    const size_t nblines = std::max(length1, length2);
+    // Cap the windows and check that, given the constraint, an alignment is possible
+    if (w > nblines) { w = nblines; }
+    if (nblines - nbcols > w) { return POSITIVE_INFINITY; }
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+    // Double buffer allocation initialized to POSITIVE_INFINITY. Extra cells for border condition.
+    // Base indices for the 'c'urrent row and the 'p'revious row. Account for the extra cell (+1 and +2)
+    std::vector<double> buffers_v((1 + nbcols) * 2, POSITIVE_INFINITY);
+    double *buffers = buffers_v.data();
+    size_t c{1}, p{nbcols + 2};
+
+    double minv = POSITIVE_INFINITY;
+
+    // --- Initialisation
+    {   // Top diag = 0
+        buffers[c - 1] = 0;
+        // Matrix Border - First line
+        const size_t jStop = cap_stop_index_to_window_or_end(0, w, nbcols);
+        for (size_t j{0}; j < jStop; ++j) {
+            buffers[c + j] = buffers[c + j - 1] + square_dist(gValue, cols[j]);
+        }
+    }
+
+    // --- Main loop
+    for (size_t i{0}; i < nblines; ++i) {
+        // --- --- --- Swap and variables init
+        std::swap(c, p);
+        const double li = lines[i];
+        const size_t jStart = cap_start_index_to_window(i, w);
+        const size_t jStop = cap_stop_index_to_window_or_end(i, w, nbcols);
+        // --- ---- --- Init the left border (very first column)
+        if (jStart == 0) { // Still on the matrix border: ERP recurrence relation
+            buffers[c - 1] = buffers[p - 1] + square_dist(li, gValue);
+        } else { // Else, we are constrained by the window, and so "prev" is +INF
+            buffers[c + jStart - 1] = POSITIVE_INFINITY;
+        }
+        minv = buffers[c + jStart - 1];
+        // --- --- --- Iterate through the columns
+        for (size_t j{jStart}; j < jStop; ++j) {
+            buffers[c + j] = min(
+                    buffers[c + j - 1] + square_dist(gValue, cols[j]),         // Previous
+                    buffers[p + j - 1] + square_dist(li, cols[j]),             // Diagonal
+                    buffers[p + j] + square_dist(li, gValue)                   // Above
+            );
+            minv = std::min(minv, buffers[c+j]);
+        }
+        if (minv > cutoff) { return POSITIVE_INFINITY; }
+    } // Main loop
+
+    return buffers[c + nbcols - 1];
+}
