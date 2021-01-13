@@ -315,3 +315,68 @@ template<bool doLA=false>
     return buffers[c + nbcols - 1];
 }
 
+[[nodiscard]] static double msm_base_ea (
+        const double *series1, size_t length1,
+        const double *series2, size_t length2,
+        double co,
+        double cutoff
+) {
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+    // Pre-conditions. Accept nullptr if length is 0
+    assert((series1 != nullptr || length1 == 0) && length1 < MAX_SERIES_LENGTH);
+    assert((series2 != nullptr || length2 == 0) && length2 < MAX_SERIES_LENGTH);
+    // Check sizes. If both series are empty, return 0, else if one is empty and not the other, maximal error.
+    if (length1 == 0 && length2 == 0) { return 0; }
+    else if ((length1 == 0) != (length2 == 0)) { return POSITIVE_INFINITY; }
+    // Use the smallest size as the columns (which will be the allocation size)
+    const double *cols = (length1 < length2) ? series1 : series2;
+    const double *lines = (length1 < length2) ? series2 : series1;
+    const size_t nbcols = std::min(length1, length2);
+    const size_t nblines = std::max(length1, length2);
+    // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+    // Double buffer allocation initialized to POSITIVE_INFINITY.
+    // Base indices for the 'c'urrent row and the 'p'revious row.
+    std::vector<double> buffers_v(nbcols * 2, POSITIVE_INFINITY);
+    double *buffers = buffers_v.data();
+    size_t c{0}, p{nbcols};
+    double minv = POSITIVE_INFINITY;
+
+    // --- Accesses
+    const double c0 = cols[0]; // Use to compute the column border
+
+    // --- Initialisation: compute the first line, implicitly dealing with the line border condition
+    {
+        const auto l0 = lines[0];
+        // Column border is handle in the main loop
+        buffers[c + 0] = std::abs(l0 - c0); // Very first cell
+        for (size_t j{1}; j < nbcols; ++j) {
+            buffers[c + j] = buffers[c + j - 1] + internal::split_merge_cost(cols[j], l0, cols[j - 1], co);
+        }
+    }
+
+    // --- Main loop
+    for (size_t i{1}; i < nblines; ++i) {
+        // --- --- --- Swap and variables init
+        std::swap(c, p);
+        const double li = lines[i];
+        const double li1 = lines[i - 1];
+        // --- --- --- Init the border (very first column)
+        buffers[c + 0] = buffers[p + 0] + internal::split_merge_cost(li, li1, c0, co);
+        minv = buffers_v[c+0];
+        // --- --- --- Iterate through the columns (start at the 2nd column)
+        for (size_t j{1}; j < nbcols; ++j) {
+            const double cj = cols[j];
+            buffers[c + j] = min(
+                    buffers[p + j - 1] + std::abs(li - cj),                                     // Diag: Move
+                    buffers[c + j - 1] + internal::split_merge_cost(cj, li, cols[j - 1], co),   // Previous: Split/Merge
+                    buffers[p + j] + internal::split_merge_cost(li, li1, cj, co)                // Above: Split/Merge
+            );
+            minv = std::min(minv, buffers[c+j]);
+        } // End for over columns
+        if (minv > cutoff) { return POSITIVE_INFINITY; }
+    }
+
+    // --- Finalisation
+    return buffers[c + nbcols - 1];
+}
