@@ -79,7 +79,7 @@ if __name__ == '__main__':
         # --- WDTW, weight
         docmd("wdtw", wdtw_weight)
 
-        # --- SQED, only if basen, eap, eap_la
+        # --- SQED, only if base, eap, eap_la
         if mode == "base" or mode == "eap" or mode == "eap_la":
             docmd("sqed")
 
