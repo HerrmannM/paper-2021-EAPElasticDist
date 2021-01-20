@@ -22,9 +22,6 @@ def read_all_in(directory):
     print(f"Found {len(all_file_paths)} files...")
     for fp in all_file_paths:
         with open(fp) as f:
-            if str(fp.name).startswith("StarLightCurves"):
-                print("Skipping ", fp)
-                pass
             try:
                 data = json.load(f)
                 results.append(data)
