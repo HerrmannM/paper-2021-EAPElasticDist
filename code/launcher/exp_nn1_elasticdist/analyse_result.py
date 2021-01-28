@@ -61,6 +61,8 @@ def bar_fig(list_tuple, xlabel, ylabel, title, output_path):
     plt.close(fig)
 
 if __name__ == "__main__":
+    # Convert ns to Hours
+    H = (1e9 * 3600)
     # Create the output directory
     outdir="figures"
 
@@ -114,11 +116,11 @@ if __name__ == "__main__":
         print(f"{m:<10}: {datetime.timedelta(microseconds=t/1e3)}")
 
     # --- Overwrite modes order and labels
-    modes_order = ["base", "base_ea", "eap"]
+    modes_order = ["base", "pru", "base_ea", "eap"]
     modes_labels = {
         'base': "Base",
         'base_ea': "EABase",
-        #'pru': "Pruned",
+        'pru': "Pruned",
         'eap': "EAPruned"
     }
 
@@ -126,9 +128,39 @@ if __name__ == "__main__":
     modes_sorted = filter(lambda x: x[0] in modes_labels, modes_sorted)
     modes_sorted = map(lambda x: (modes_labels[x[0]], x[1]), modes_sorted)
 
+    # --- Sort the result
+    lres = list(results.items())
+    lres.sort(key=lambda x: x[1]['base']['total_time_ns'])
+
+    # --- Print the total 15 slowest dataset
+    lres15Slow = lres[-15:]
+    slow_ns = {}
+    for d in modes_order:
+        slow_ns[d] = 0
+    print("---- 15 slowest ----")
+    for name, ddic in lres15Slow:
+        toprint = name + " &"
+        #
+        for d in modes_order[:-1]:
+            ns = ddic[d]['total_time_ns']
+            toprint += f"{ns/H:.2f} &"
+            slow_ns[d] += ns
+        #
+        ns = ddic[modes_order[-1]]['total_time_ns']
+        toprint += f"{ns/H:.2f} \\\\"
+        slow_ns[modes_order[-1]] += ns
+        print(toprint)
+
+    toprint = "total &"
+    for d in modes_order[:-1]:
+        ns = slow_ns[d]
+        toprint += f"{ns/H:.2f} &"
+    ns = slow_ns[modes_order[-1]]
+    toprint += f"{ns/H:.2f} \\\\"
+    print(toprint)
 
     # --- Graph
-    doGraph = True
+    doGraph = False
     if doGraph:
         if(not os.path.exists(outdir)): os.mkdir(outdir)
 
@@ -170,11 +202,12 @@ if __name__ == "__main__":
             output = os.path.join(outdir, distname)
             bar_fig(in_hours, xlabel, ylabel, title, output)
 
-        # --- Print per dataset
+
+        # --- Graph per dataset
         doPerDataset = False
         if doPerDataset:
             # Runtime per dataset per mode
-            for dataset_name, dataset_dic in results.items():
+            for dataset_name, dataset_dic in lres:
                 print(dataset_name)
                 l= []
                 for m in modes_order:
@@ -182,7 +215,7 @@ if __name__ == "__main__":
                     for k,v in dataset_dic[m]["distance"].items():
                         if k == "lcss" or k == "sqed": continue
                         acc += v[0]
-                    l.append((m, acc, dataset_dic[m]['total_time']))
+                    l.append((modes_labels[m], acc, dataset_dic[m]['total_time']))
                 for (m, _, time) in l: print(f"  {m:<10}: {time}")
                 kv = map(lambda x: (x[0], x[1]/(1e9*3600)), l)
                 xlabel = 'algorithm families'
@@ -192,6 +225,7 @@ if __name__ == "__main__":
                         + "\nDTW, CDTW, WDTW, ERP, MSM, TWE"
                 output = os.path.join(outdir, "dataset_"+dataset_name)
                 bar_fig(kv, xlabel, ylabel, title, output)
+
 
 
 
