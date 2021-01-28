@@ -113,13 +113,27 @@ if __name__ == "__main__":
     for (m, t) in modes_sorted:
         print(f"{m:<10}: {datetime.timedelta(microseconds=t/1e3)}")
 
+    # --- Overwrite modes order and labels
+    modes_order = ["base", "base_ea", "eap"]
+    modes_labels = {
+        'base': "Base",
+        'base_ea': "EABase",
+        #'pru': "Pruned",
+        'eap': "EAPruned"
+    }
+
+    # --- Filter the mode and relabel
+    modes_sorted = filter(lambda x: x[0] in modes_labels, modes_sorted)
+    modes_sorted = map(lambda x: (modes_labels[x[0]], x[1]), modes_sorted)
+
+
     # --- Graph
     doGraph = True
     if doGraph:
         if(not os.path.exists(outdir)): os.mkdir(outdir)
 
         # --- --- --- All distances
-        in_hours = map(lambda x: (x[0], x[1]/(1e9*3600)), modes_sorted)
+        in_hours = map(lambda x:  (x[0], x[1]/(1e9*3600)), modes_sorted)
         xlabel = 'algorithm families'
         ylabel = 'runtime in hours'
         title =  "Total runtime in hours per algorithm family"\
@@ -139,10 +153,14 @@ if __name__ == "__main__":
                     d[mode] = runtime + measures[0]
         #pp.pprint(per_dist)
         for distname, dic in per_dist.items():
+            dic = per_dist[distname]
             k_v = []
             for m in modes_order:
                 if m in dic:
-                    k_v.append((m, dic[m]))
+                    ml = modes_labels[m]
+                    if distname in ["lcss", "sqed"] and ml == "EAPruned":
+                        ml =  "EABase"
+                    k_v.append((ml, dic[m]))
             in_hours = map(lambda x: (x[0], x[1] / (1e9 * 3600)), k_v)
             xlabel = 'algorithm families'
             ylabel = 'runtime in hours'
@@ -153,7 +171,7 @@ if __name__ == "__main__":
             bar_fig(in_hours, xlabel, ylabel, title, output)
 
         # --- Print per dataset
-        doPerDataset = True
+        doPerDataset = False
         if doPerDataset:
             # Runtime per dataset per mode
             for dataset_name, dataset_dic in results.items():
