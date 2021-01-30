@@ -61,7 +61,8 @@ def bar_fig(list_tuple, xlabel, ylabel, title, output_path):
     plt.close(fig)
 
 if __name__ == "__main__":
-    # Convert ns to Hours
+    # Convert ns to Minutest or Hours
+    M = (1e9 * 60)
     H = (1e9 * 3600)
     # Create the output directory
     outdir="figures"
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     slow_ns = {}
     for d in modes_order:
         slow_ns[d] = 0
-    print("---- 15 slowest ----")
+    print("---- 15 slowest in hours ----")
     for name, ddic in lres15Slow:
         toprint = name + " &"
         #
@@ -157,6 +158,33 @@ if __name__ == "__main__":
         toprint += f"{ns/H:.2f} &"
     ns = slow_ns[modes_order[-1]]
     toprint += f"{ns/H:.2f} \\\\"
+    print(toprint)
+
+
+    lres15Slow = lres[:15]
+    slow_ns = {}
+    for d in modes_order:
+        slow_ns[d] = 0
+    print("---- 15 fastest in minutes ----")
+    for name, ddic in lres15Slow:
+        toprint = name + " &"
+        #
+        for d in modes_order[:-1]:
+            ns = ddic[d]['total_time_ns']
+            toprint += f"{ns/M:.3f} &"
+            slow_ns[d] += ns
+        #
+        ns = ddic[modes_order[-1]]['total_time_ns']
+        toprint += f"{ns/M:.3f} \\\\"
+        slow_ns[modes_order[-1]] += ns
+        print(toprint)
+
+    toprint = "total &"
+    for d in modes_order[:-1]:
+        ns = slow_ns[d]
+        toprint += f"{ns/M:.3f} &"
+    ns = slow_ns[modes_order[-1]]
+    toprint += f"{ns/M:.3f} \\\\"
     print(toprint)
 
     # --- Graph
