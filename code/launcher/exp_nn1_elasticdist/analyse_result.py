@@ -167,7 +167,7 @@ if __name__ == "__main__":
         slow_ns[d] = 0
     print("---- 15 fastest in minutes ----")
     for name, ddic in lres15Slow:
-        toprint = name + " &"
+        toprint = name + " & "
         #
         for d in modes_order[:-1]:
             ns = ddic[d]['total_time_ns']
