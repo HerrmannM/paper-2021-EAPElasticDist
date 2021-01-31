@@ -33,11 +33,12 @@ The last command shows a help message.
 
 ## Experimentation
 
-The `code/launcher` contains a python script able to launch several commands in parallel.
+The `code/launcher` contains a python script able to launch several commands in parallel,
+along with a CSV containing parameters found by EE for the UCR Archive (in its 85 datasets version).
 It also contains two folders.
 One for an experimentation comparing run times of NN1 classifiers with elastic distances in several configurations.
 One for an experimentation studying the impact of lower bounding.
 Each folder contains:
-  *  a python script generating a file containing commands. This file can be used with the first script.
+  *  a python script generating a file containing commands, based on the EE parameters. This file can be used with the first script.
   *  a python script analysing the results and producing some graphs
   *  a results/json.zip file containing all our results
