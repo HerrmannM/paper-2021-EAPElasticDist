@@ -70,9 +70,20 @@ if __name__ == "__main__":
     # Read all the json
     json_results = read_all_in("results/json")
 
+    # --- Overwrite modes order and labels
+    modes_order = ["base", "pru", "base_ea", "eap"]
+    modes_labels = {
+        'base': "Base",
+        'base_ea': "EABase",
+        'pru': "Pruned",
+        'eap': "EAPruned"
+    }
+
+
     # Iterate over the results, aggregate by dataset, mode, distance
     results = {}  # Dictionary that will hold the aggregated results
     modes = set() # Set of discovered modes
+    nbacc = 0
     for r in json_results:
         # Aggregate by dataset
         # Note : setdefault is like get, but init to second arg if key is absent
@@ -80,6 +91,8 @@ if __name__ == "__main__":
         dataset_dic = results.setdefault(dataset_name, {})
         # Aggregate by mode. Sum runtime accross distances
         mode_name = r['distance']['runmode']
+        if mode_name not in modes_order:
+            continue
         modes.add(mode_name)
         mode_dict = dataset_dic.setdefault(mode_name, {})
         # Sum runtime across distances
@@ -92,8 +105,9 @@ if __name__ == "__main__":
         distance_name = r['distance']['name']
         distance_dict = mode_dict.setdefault('distance', {})
         distance_dict[distance_name] = [runtime, str(datetime.timedelta(microseconds=runtime/1e3))]
+        nbacc+=1
 
-    print(f"Loaded results for {len(results)} datasets")
+    print(f"Loaded {nbacc} results for {len(results)} datasets")
     print(f"Found modes: {modes}")
     if len(results) == 0:
         print("No data, exit.")
@@ -116,14 +130,6 @@ if __name__ == "__main__":
     for (m, t) in modes_sorted:
         print(f"{m:<10}: {datetime.timedelta(microseconds=t/1e3)}")
 
-    # --- Overwrite modes order and labels
-    modes_order = ["base", "pru", "base_ea", "eap"]
-    modes_labels = {
-        'base': "Base",
-        'base_ea': "EABase",
-        'pru': "Pruned",
-        'eap': "EAPruned"
-    }
 
     # --- Filter the mode and relabel
     modes_sorted = filter(lambda x: x[0] in modes_labels, modes_sorted)
@@ -133,13 +139,14 @@ if __name__ == "__main__":
     lres = list(results.items())
     lres.sort(key=lambda x: x[1]['base']['total_time_ns'])
 
-    # --- Print the total 15 slowest dataset
-    lres15Slow = lres[-15:]
+    # --- Print the total NB slowest/fastest dataset
+    NB=10
+    lresSlow = lres[-NB:]
     slow_ns = {}
     for d in modes_order:
         slow_ns[d] = 0
-    print("---- 15 slowest in hours ----")
-    for name, ddic in lres15Slow:
+    print(f"---- {NB} slowest in hours ----")
+    for name, ddic in lresSlow:
         toprint = name + " &"
         #
         for d in modes_order[:-1]:
@@ -161,12 +168,12 @@ if __name__ == "__main__":
     print(toprint)
 
 
-    lres15Slow = lres[:15]
+    lresFast = lres[:NB]
     slow_ns = {}
     for d in modes_order:
         slow_ns[d] = 0
-    print("---- 15 fastest in minutes ----")
-    for name, ddic in lres15Slow:
+    print(f"---- {NB} fastest in minutes ----")
+    for name, ddic in lresFast:
         toprint = name + " & "
         #
         for d in modes_order[:-1]:
