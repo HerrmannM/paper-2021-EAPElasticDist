@@ -42,3 +42,9 @@ Each folder contains:
   *  a python script generating a file containing commands, based on the EE parameters. This file can be used with the first script.
   *  a python script analysing the results and producing some graphs
   *  a results/json.zip file containing all our results
+  
+  
+## Benchmarks
+To produce the bechmarks output, unzip the json.zip files inside their results folder.
+All the json files it contains should now reside under `code/launcher/exp_something/results/json`.
+Then, launch the corresponding `analys_results.py` script to generate the figures.
