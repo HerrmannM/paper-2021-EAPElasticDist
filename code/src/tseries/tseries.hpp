@@ -28,6 +28,21 @@ public:
     /** Default constructor, creating an empty series */
     TSeries() : data_(data_v_.data()) {}
 
+
+    /*
+    template<typename FloatType>
+    static void derivative(const FloatType *series, size_t length, FloatType *out) {
+        if (length > 2) {
+            for (size_t i{1}; i < length - 1; ++i) {
+                out[i] = ((series[i] - series[i - 1]) + ((series[i + 1] - series[i - 1]) / 2.0)) / 2.0;
+            }
+            out[0] = out[1];
+            out[length - 1] = out[length - 2];
+        } else {
+            std::copy(series, series + length, out);
+        }
+    }*/
+
     /** Constructor with a moving vector: the new instance owns the data and will clear them when destroyed */
     TSeries(std::vector<double> &&data, size_t nb_dimensions, bool has_missing, std::optional<std::string> label)
             : data_v_(std::move(data)), nb_dimensions_(nb_dimensions), has_missing_(has_missing),
@@ -36,6 +51,10 @@ public:
         length_ = data_v_.size() / nb_dimensions_;
         data_v_.shrink_to_fit();
         data_ = data_v_.data();
+        // std::vector<double> nd(data_v_.size());
+        // derivative<double>(data_v_.data(), data_v_.size(), nd.data());
+        // data_ = nd.data();
+        // data_v_ = std::move(nd);
     }
 
     /** Constructor with a raw pointer: the new instance does not own the data and will not free the memory when destroyed.
