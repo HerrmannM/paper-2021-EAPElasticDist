@@ -1,5 +1,8 @@
 # Early Abandoned & Pruned for Elastic Distances
 
+This code supports a paper currently submitted, and is not intended to be use as a library (although you can!).
+If that's what you are looking for, please have a look at the [tempo library](https://github.com/MonashTS/tempo).
+
 This code is designed to be used with the UCR archive using the ts format.
 See http://timeseriesclassification.com/dataset.php
 It implements DTW, CDTW, WDTW, ERP, MSM and TWE in four versions:
@@ -15,6 +18,7 @@ This is an attempt at speeding up further the computation by tightening the prov
 last alignement of the series. However, the results are hardware dependent.
 In some cases, the cache faults are more expensive than the gain. Hence this option is not considered in our
 experimentations.
+
 
 ## Building
 
