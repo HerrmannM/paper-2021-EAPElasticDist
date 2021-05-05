@@ -123,6 +123,7 @@ namespace internal {
     double final_dtw = cost_prev[m-1];
     free(cost);
     free(cost_prev);
+    free(ub_partials); // Fix bug
     return final_dtw;
   }
 
