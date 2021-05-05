@@ -25,8 +25,11 @@ def read_all_in(directory):
     print(f"Found {len(all_file_paths)} files...")
     for fp in all_file_paths:
         with open(fp) as f:
-            data = json.load(f)
-            results.append(data)
+            try:
+                data = json.load(f)
+                results.append(data)
+            except:
+                print("Skipping f")
     #
     return results
 
@@ -124,10 +127,12 @@ def analysis_per_running_mode(json_results, outdir):
         exit(1)
 
     # --- Fix order of modes -- ignore lrp
-    modes_order = ['base', 'base_ea', 'eap']
+    modes_order = ['base', 'pruneddtw', 'pru', 'base_ea', 'eap']
     modes_labels = {
         'base': "Base",
         'base_ea': "EABase",
+        'pruneddtw': "PrunedDTW",
+        'pru': "Pruned",
         'eap': "EAPruned"
     }
     modes_order_labels = [modes_labels[x] for x in modes_order]

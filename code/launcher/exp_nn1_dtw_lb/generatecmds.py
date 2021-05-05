@@ -6,7 +6,7 @@ if __name__ == '__main__':
     MY_PATH = Path(__file__)
     HOME_PATH = Path.home()
     EXEC_PATH = (MY_PATH / "../../../cmake-build-release/experiments").resolve()
-    UCR_PATH = HOME_PATH / "Univariate_ts"
+    UCR_PATH = HOME_PATH / "tsgood/Univariate_ts"
     EECSV_PATH = (MY_PATH / "../../eeOutputFold0.csv").resolve()
     RESULTS_OUTDIR_PATH = (MY_PATH / "../results/json").resolve()
 
@@ -74,15 +74,15 @@ if __name__ == '__main__':
         # --- CDTW, window ratio, no lb
         do_cdtw("lb-none", cdtw_w)
         do_dtw("lb-none")
+
         # --- CDTW, window ratio, keogh
         do_cdtw("lb-keogh", cdtw_w)
         do_dtw("lb-keogh")
+
         # --- CDTW, window ratio, keogh2
         do_cdtw("lb-keogh2", cdtw_w)
         do_dtw("lb-keogh2")
-        # --- CDTW, window ratio, webb
-        do_cdtw("lb-webb", cdtw_w)
-        do_dtw("lb-webb")
+
 
     # # # # # # # # # # # # # # # # # #
 
@@ -91,5 +91,5 @@ if __name__ == '__main__':
         header = next(records)  # Skip header
         print(header)
         for r in records:
-            for mode in ["base", "base_ea", "pru", "pru_la", "eap", "eap_la"]:
+            for mode in ["base", "base_ea", "eap", "pru", "pruneddtw"]:   #, "pru_la", "eap", "eap_la"]:
                 generate_cmd(r, mode, cmdsfile)

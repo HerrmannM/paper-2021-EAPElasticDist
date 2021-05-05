@@ -24,6 +24,7 @@ add_executable(experiments
         src/distances/distances.hpp
         src/distances/dtw/wdtw.hpp
         src/distances/dtw/cdtw.hpp
+        src/distances/dtw/pruneddtw.hpp
         src/distances/dtw/dtw.hpp
         src/distances/elementwise/elementwise.hpp
         src/distances/lcss/lcss.hpp

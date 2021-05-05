@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include "distances/dtw/dtw.hpp"
+#include "distances/dtw/pruneddtw.hpp"
 #include "distances/dtw/cdtw.hpp"
 #include "distances/dtw/wdtw.hpp"
 #include "distances/elementwise/elementwise.hpp"
@@ -58,6 +59,7 @@ void print_usage(const string &execname, ostream &out) {
     out << "  base_ea               Base implementation with early abandon. Not for LCSS, SQED" << endl;
     out << "  pru                   Pruning only, using EAP and cutoff based on the diagonal (no early abandoning!). Not for LCSS, SQED. " << endl;
     out << "  pru_la                PRU with last alignment cutoff adjustment. Not for LCSS, SQED" << endl;
+    out << "  pruneddtw             PrunedDTW implementation. Only for DTW and CDTW." << endl;
     out << "  eap                   Early abandoned and pruned. SQED and LCSS are only early abandoned, not pruned" << endl;
     out << "  eap_la                EAP with last alignment cutoff adjustment. Not for LCSS." << endl;
     out << "Create an output file: '-out <outfile>'" << endl;
@@ -83,6 +85,7 @@ enum RUNMODE{
     BASE_EA,
     PRU,
     PRU_LA,
+    PRUNEDDTW,
     EAP,
     EAP_LA,
 };
@@ -93,6 +96,7 @@ string to_string(RUNMODE rm){
         case BASE_EA: return "base_ea";
         case PRU: return "pru";
         case PRU_LA: return "pru_la";
+        case PRUNEDDTW: return "pruneddtw";
         case EAP: return "eap";
         case EAP_LA: return "eap_la";
     }
@@ -304,6 +308,9 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
                 dfun = [](TRAIN_TEST, [[maybe_unused]]double ub){ return dtw<true>(TRAIN, TEST); };
                 break;
             }
+            case PRUNEDDTW:{
+              dfun = [](TRAIN_TEST, [[maybe_unused]]double ub){ return pruneddtw(TRAIN, TEST, 1); };
+            }
             case EAP:{
                 dfun = [](TRAIN_TEST, double ub){ return dtw<false>(TRAIN, TEST, ub); };
                 break;
@@ -335,6 +342,10 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
             case PRU_LA:{
                 dfun = [w](TRAIN_TEST, [[maybe_unused]]double ub){ return cdtw<true>(TRAIN, TEST, w); };
                 break;
+            }
+            case PRUNEDDTW:{
+              dfun = [w](TRAIN_TEST, [[maybe_unused]]double ub){ return pruneddtw(TRAIN, TEST, w); };
+              break;
             }
             case EAP:{
                 dfun = [w](TRAIN_TEST, double ub){ return cdtw<false>(TRAIN, TEST, w, ub); };
@@ -746,6 +757,7 @@ int main(int argc, char** argv){
             else if(arg=="base_ea"){ conf.runmode = BASE_EA; }
             else if(arg=="pru"){ conf.runmode = PRU; }
             else if(arg=="pru_la"){ conf.runmode = PRU_LA; }
+            else if(arg=="pruneddtw"){ conf.runmode = PRUNEDDTW; }
             else if(arg=="eap"){ conf.runmode = EAP; }
             else if(arg=="eap_la"){ conf.runmode = EAP_LA; }
                 // --- --- --- Unkwnon args
