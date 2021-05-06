@@ -309,7 +309,9 @@ variant<string, distfun_t> get_distfun(const config& conf, size_t maxl, size_t m
                 break;
             }
             case PRUNEDDTW:{
-              dfun = [](TRAIN_TEST, [[maybe_unused]]double ub){ return pruneddtw(TRAIN, TEST, 1); };
+              size_t w = conf.cdtw_wratio * maxl;
+              dfun = [w](TRAIN_TEST, [[maybe_unused]]double ub){ return pruneddtw(TRAIN, TEST, w); };
+              break;
             }
             case EAP:{
                 dfun = [](TRAIN_TEST, double ub){ return dtw<false>(TRAIN, TEST, ub); };

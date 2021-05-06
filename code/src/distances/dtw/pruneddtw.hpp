@@ -21,7 +21,7 @@ namespace internal {
 
   double pruneddtw(
     const double* A, size_t Asize,
-    const double* B, size_t Bsize,
+    const double* B, [[maybe_unused]] size_t Bsize,
     size_t w) {
 
     using namespace std;
@@ -30,11 +30,11 @@ namespace internal {
     double* cost;
     double* cost_prev;
     double* cost_tmp;
-    int i, j, k;
+    int i, j; //, k; // Fix: comment unused
     double x, y, z;
 
-    int m = Asize;
-    int r = w;
+    int m = Asize; // Change: use parameter
+    int r = w;     // Change: use pre-computed window size
 
     // Variables to implement the pruning - PrunedDTW
     int sc = 0, ec = 0, next_ec, lp; //lp stands for last pruning
