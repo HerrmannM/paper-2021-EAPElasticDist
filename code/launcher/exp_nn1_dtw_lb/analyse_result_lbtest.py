@@ -47,7 +47,7 @@ def autolabel(ax, rects, fontsize):
 
 # Bar figure
 def bar_fig(list_tuple, xlabel, ylabel, title, output_path):
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(1, 1, 1)
     fontsize = 16
     ax.tick_params(axis='both', labelsize=fontsize)
@@ -151,7 +151,7 @@ def analysis_per_running_mode(json_results, outdir):
 
         N = len(modes_order)
         M = len(lbs_order)
-        fig = plt.figure(figsize=(20, 8))
+        fig = plt.figure(figsize=(30, 10))
         ax = fig.add_subplot(1, 1, 1)
 
         ind = np.arange(N)  # the x locations for the groups
