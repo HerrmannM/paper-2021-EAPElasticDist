@@ -91,5 +91,5 @@ if __name__ == '__main__':
         header = next(records)  # Skip header
         print(header)
         for r in records:
-            for mode in ["base", "base_ea", "eap", "pru", "pruneddtw"]:   #, "pru_la", "eap", "eap_la"]:
+            for mode in ["pruneddtw2018"]: # "base", "base_ea", "eap", "pru", "pruneddtw"]:   #, "pru_la", "eap", "eap_la"]:
                 generate_cmd(r, mode, cmdsfile)
