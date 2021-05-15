@@ -55,10 +55,11 @@ namespace internal {
   /// - Renamed to pruneddtw2018
   /// - Formatting
   /// - Redefinition of INF using numeric_limits
+  /// - Check & correct the window size
   double pruneddtw2018(const double* A, const double* B, const double* cb, int m, int r, double bsf) {
-
     using namespace std;
     constexpr double INF = numeric_limits<double>::infinity();
+    if(r>=m){r=m-1;} else if(r<0){r=0;}
 
     double* cost;
     double* cost_prev;
