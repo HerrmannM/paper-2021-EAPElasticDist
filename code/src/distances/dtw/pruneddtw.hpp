@@ -1,3 +1,4 @@
+#pragma once
 // Original PrunedDTW Code by Diego Furtado Silva, adapted by Matthieu Herrmann.
 //
 //   This code has been adapted from the code provided with the following paper:
