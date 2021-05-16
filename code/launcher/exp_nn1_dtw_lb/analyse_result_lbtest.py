@@ -99,7 +99,6 @@ def analysis_per_running_mode(json_results, outdir):
             print("Error: not matching result found for ")
             print(r)
             print("Expected ", check[dataset_name])
-            exit(255)
 
         # aggregate by mode
         mode_name = r['distance']['runmode']
@@ -127,11 +126,12 @@ def analysis_per_running_mode(json_results, outdir):
         exit(1)
 
     # --- Fix order of modes -- ignore lrp
-    modes_order = ['base', 'pruneddtw', 'pru', 'base_ea', 'eap']
+    modes_order = ['base', 'pruneddtw', 'pruneddtw2018', 'pru', 'base_ea', 'eap']
     modes_labels = {
         'base': "Base",
         'base_ea': "EABase",
         'pruneddtw': "PrunedDTW",
+        'pruneddtw2018': "PrunedDTW2018",
         'pru': "Pruned",
         'eap': "EAPruned"
     }
