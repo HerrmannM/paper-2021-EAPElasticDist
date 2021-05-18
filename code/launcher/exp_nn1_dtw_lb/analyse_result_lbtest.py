@@ -151,11 +151,12 @@ def analysis_per_running_mode(json_results, outdir):
 
         N = len(modes_order)
         M = len(lbs_order)
-        fig = plt.figure(figsize=(30, 10))
+        fig = plt.figure(figsize=(18, 8))
         ax = fig.add_subplot(1, 1, 1)
 
         ind = np.arange(N)  # the x locations for the groups
         width = 0.23  # the width of the bars
+        width = 0.28  # the width of the bars
         shift = 0
         group_bars = []
         group_lb = []
@@ -166,8 +167,8 @@ def analysis_per_running_mode(json_results, outdir):
             group_bars.append(p)
             group_lb.append(lb)
 
-        fontsize = 28
-        fontsize_label = 24
+        fontsize = 20
+        fontsize_label = 13
         ax.set_xlabel("lower bounds / mode", fontsize=fontsize, labelpad=15)
         ax.set_ylabel("runtime in hours", fontsize=fontsize, labelpad=10)
         ax.set_title(title, fontsize=fontsize)

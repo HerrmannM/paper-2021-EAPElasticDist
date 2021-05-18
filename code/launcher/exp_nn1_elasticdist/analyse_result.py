@@ -195,7 +195,7 @@ if __name__ == "__main__":
     print(toprint)
 
     # --- Graph
-    doGraph = False
+    doGraph = True
     if doGraph:
         if(not os.path.exists(outdir)): os.mkdir(outdir)
 
