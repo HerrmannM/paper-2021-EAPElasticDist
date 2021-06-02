@@ -36,13 +36,13 @@ def read_all_in(directory):
 def bar_fig(list_tuple, xlabel, ylabel, title, output_path):
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(1, 1, 1)
-    fontsize = 16
+    fontsize = 24
     ax.tick_params(axis='both', labelsize=fontsize)
     x, val = zip(*list_tuple)
     bar = ax.bar(x, val)
     ax.set_xlabel(xlabel, fontsize=fontsize, labelpad=15)
     ax.set_ylabel(ylabel, fontsize=fontsize, labelpad=10)
-    ax.set_title(title, fontsize=fontsize)
+    #ax.set_title(title, fontsize=fontsize)
     # From the doc https://matplotlib.org/examples/api/barchart_demo.html
     def autolabel(rects):
         for rect in rects:
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     lres.sort(key=lambda x: x[1]['base']['total_time_ns'])
 
     # --- Print the total NB slowest/fastest dataset
-    NB=10
+    NB=5
     lresSlow = lres[-NB:]
     slow_ns = {}
     for d in modes_order:

@@ -131,7 +131,7 @@ def analysis_per_running_mode(json_results, outdir):
         'base': "Base",
         'base_ea': "EABase",
         'pruneddtw': "PrunedDTW",
-        'pruneddtw2018': "PrunedDTW2018",
+        'pruneddtw2018': "PrunedDTW+EA",
         'pru': "Pruned",
         'eap': "EAPruned"
     }
