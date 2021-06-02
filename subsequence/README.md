@@ -1,18 +1,14 @@
-# UCR-Monash
-Monash UCR suite implementation showcasing EAPrunedDTW.
-This page support our paper **Early Abandoning PrunedDTW and its application to similarity search**
-available on arxiv https://arxiv.org/abs/2010.05371 (submitted to SDM2021).
+# Subsequence search
+UCR suite modified to showcase our EAPruned DTW implementation.
 
-We developed EAPruneDTW, a version of PrunedDTW suited to early abandon.
-You can find the source code of PruneDTW on its website http://sites.labic.icmc.usp.br/prunedDTW/ .
+* Original UCR suite:  https://www.cs.ucr.edu/~eamonn/UCRsuite.html
+* UCR USP suite using PrunedDTW: https://sites.google.com/view/ucruspsuite
 
-PrunedDTW was later use in the UCR suite ( **Searching and Mining Trillions ofTime SeriesSubsequencesunder Dynamic Time Warping** https://www.cs.ucr.edu/~eamonn/UCRsuite.html ),
-leading to the UCR USP suite (**Speeding Up Similarity Search Under Dynamic Time Warping by Pruning Unpromising Alignments** https://sites.google.com/view/ucruspsuite ).
-
-We implemented EAPrunedDTW in the UCR suite, leading to our own UCR MON suite.
+We implemented EAPruned DTW in the UCR suite, leading to our own 'UCR MON suite' -- called 'UCR+EAPruned' in the paper and the generated figures.
 To be clear, the UCR USP and UCR MON suites are directly derived from UCR suite: the code is the same except for the implementation of the dtw function.
 The UCR suite uses lower bound to reduce computation time.
-We also create a UCR MON nolb which only uses EAPrunedDTW an no lower bound at all.
+We also create a UCR MON nolb which only uses EAPruned DTW an no lower bound at all.
+It is not included in the paper to simplify the discussion, but our results are available here (as we need to run everything on the same computer).
 
 We ran the same experiments as in the UCR USP paper on AMD opteron 6338P at 2.3Ghz compiled with g++ 9.3.0, with -O3 flag.
 There are 6 datasets, and for each datasets we run an experiment over the combination of  5 queries,
@@ -39,8 +35,7 @@ chmod u+x dl_dataset.sh
 
 This will create a DATASETS directory, download and unzip the datasets.
 You can inspect the script to see how it works.
-It's weird because the datasets are stored on a google drive,
-different download techniques are required depending on their size... yup!
+(It's weird because the datasets are stored on a google drive, different download techniques are required depending on their size... )
 Last but not least, the PPG datasets link is not a zip, so every queries and data are individually downloaded.
 
 To compile a executable, navigate to its directory and launch make,
