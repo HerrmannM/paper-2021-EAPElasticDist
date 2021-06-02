@@ -35,9 +35,9 @@ make
 
 The last command shows a help message.
 
-## Experimentation
+## Experimentations
 
-The `code/launcher` contains a python script able to launch several commands in parallel,
+The `nnclassification/launcher` contains a python script able to launch several commands in parallel,
 along with a CSV containing parameters found by EE for the UCR Archive (in its 85 datasets version).
 It also contains two folders.
 One for an experimentation comparing run times of NN1 classifiers with elastic distances in several configurations.
@@ -46,6 +46,8 @@ Each folder contains:
   *  a python script generating a file containing commands, based on the EE parameters. This file can be used with the first script.
   *  a python script analysing the results and producing some graphs
   *  a results/json.zip file containing all our results
+ 
+The third experiment presented in the paper on sub-sequene search is contained in the `subsequence` folder.
   
   
 ## Benchmarks
