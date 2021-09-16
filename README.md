@@ -1,6 +1,9 @@
 # Early Abandoned & Pruned for Elastic Distances
 
-This code supports a paper currently submitted, and is not intended to be use as a library (although you can!).
+This code supports our paper "Early abandoning and pruning for elastic distances including dynamic time warping".
+You can find the paper here: https://link.springer.com/article/10.1007/s10618-021-00782-4
+
+This code is not intended to be use as a library (although you can!).
 If that's what you are looking for, please have a look at the [tempo library](https://github.com/MonashTS/tempo).
 
 This code is designed to be used with the UCR archive using the ts format.
